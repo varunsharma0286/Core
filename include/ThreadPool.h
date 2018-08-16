@@ -37,7 +37,7 @@ public:
 	void Assign(string sLog)
 	{
 		std::unique_lock<std::mutex> lock(m_Mutex);
-		mQueue.push_back(sLog);
+		mQueue.push(sLog);
 		m_ConditionVar.notify_one();
 	}
 
@@ -48,9 +48,16 @@ public:
 
 	void StopThread()
 	{
+		//Check if already stopped
+		if(m_bStopThread)
+		{
+			return;
+		}
+
 		std::unique_lock<std::mutex> lock(m_Mutex);
 		m_bStopThread = true;
 		m_ConditionVar.notify_one();
+		m_Thread.join();
 	}
 
 	void ThreadFunction();
@@ -87,10 +94,7 @@ public:
 
 	~Thread()
 	{
-		if(not m_bStopThread)
-		{
-			StopThread();
-		}
+		StopThread();
 	}
 
 private:
@@ -108,6 +112,8 @@ public:
 	ThreadPool(unsigned nNumThreads);
 
 	bool Init();
+
+	void Stop();
 
 	void AssignTask();
 	//void ResizeThreadPool(unsigned nNumThreads)

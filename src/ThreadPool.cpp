@@ -53,9 +53,24 @@ void ThreadPool::AssignTask(string sLog)
 		return;
 	}
 
-	
 	//When we come here, the value of m_nThreadIndex is guaranteed to be between 0 and m_nNumThreads-1
 	unsigned nThreadIndex = m_nThreadIndex++; 
 	nThreadIndex = nThreadIndex%m_nNumThreads;
 	m_ThreadPool.Assign(sLog);
 }
+
+
+//This function "MUST" be called from the main thread
+void ThreadPool::Stop()
+{
+	if(not m_bIsInitialized)
+	{
+		return;
+	}
+
+	for(unsigned i=0;i<m_nNumThreads;i++)
+	{
+		m_ThreadPool[i].StopThread();
+	}
+}
+
